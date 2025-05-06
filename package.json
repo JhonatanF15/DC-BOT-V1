@@ -1,0 +1,36 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "Bot do Discord para reencaminhar mensagens privadas e monitorar servidor ARK",
+  "main": "index.js",
+  "scripts": {
+    "start:obf": "node index.obf.js",
+    "keepalive:obf": "node keepalive.obf.js",
+    "security:obf": "node security.obf.js",
+    "start": "node index.js",
+    "build": "javascript-obfuscator index.js -o index.obf.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "ark",
+    "battlemetrics",
+    "monitoring"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": "16.x"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.1"
+  }
+}
