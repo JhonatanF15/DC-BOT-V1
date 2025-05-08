@@ -1,0 +1,8 @@
+[run]
+command = "npm start"
+
+[language]
+language = "nodejs"
+
+[packages]
+nodejs = ["discord.js", "express", "dotenv"]

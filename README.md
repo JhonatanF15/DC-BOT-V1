@@ -1,64 +1,122 @@
 # Discord Bot
 
-Um bot do Discord que reencaminha mensagens privadas para um canal específico
+Um bot do Discord pronto para rodar no Replit ou localmente, com sistema de comandos, logs, segurança e keepalive.
 
 ## 🚀 Funcionalidades
 
-- ✉️ Reencaminhamento de mensagens privadas para canal do Discord
+- ✉️ Reencaminhamento de mensagens privadas para um canal do Discord
 - 🔄 Sistema de keepalive para manter o bot online 24/7
-- 🔒 Sistema de segurança e validação de entrada
+- 📝 Sistema de comandos dinâmicos (pasta `commands/`)
+- 🔒 Segurança: validação de IDs, sanitização de mensagens, limite de uso
+- 📋 Logs detalhados em arquivo (`bot.log`)
 
-## 🛡️ Segurança
+---
 
-### Configuração do .env
+## 📁 Estrutura do Projeto
 
-```shell
-# Bot Configuration
-TOKEN=seu_token_aqui
-USER_ID=seu_id_aqui
-CANAL_ID=seu_canal_aqui
-KEEPALIVE_ENABLED=false
+```
+DC-BOT-V1/
+├── commands/
+│   └── ping.js        # Exemplo de comando /ping
+├── index.js           # Código principal do bot
+├── package.json       # Dependências e scripts
+├── .gitignore         # Ignora node_modules e .env
+├── README.md          # Este manual
+```
 
+---
 
+## 📦 Dependências
 
-### Proteções Implementadas
+- [discord.js](https://discord.js.org/) — interação com a API do Discord
+- [express](https://expressjs.com/) — servidor para keepalive
+- [dotenv](https://www.npmjs.com/package/dotenv) — variáveis de ambiente
+- [simple-node-logger](https://www.npmjs.com/package/simple-node-logger) — sistema de logs
 
-- ✅ Validação de IDs do Discord
-- ✅ Limite de 5 mensagens por minuto por usuário
-- ✅ Sanitização de mensagens
-- ✅ Lista restrita de comandos permitidos
-- ✅ Logs detalhados
+Instale tudo com:
+```bash
+npm install
+```
 
-## ☁️ Rodando no Replit
+---
 
-Siga os passos abaixo para rodar este bot no [Replit](https://replit.com):
+## ⚙️ Variáveis de Ambiente
+
+Configure no painel "Secrets" do Replit ou em um arquivo `.env` local:
+
+| Variável         | Descrição                                                        |
+|------------------|------------------------------------------------------------------|
+| TOKEN            | Token do seu bot Discord                                         |
+| USER_ID          | Seu ID de usuário Discord (opcional, para comandos restritos)     |
+| CANAL_ID         | ID do canal padrão para mensagens privadas                        |
+| SECRET_TOKEN     | Token secreto para endpoint keepalive (opcional)                  |
+| KEEPALIVE_ENABLED| `true` para ativar keepalive, `false` para desativar (opcional)   |
+| PORT             | Porta do servidor HTTP (Replit usa automaticamente)               |
+
+---
+
+## ✨ Como adicionar comandos
+
+1. Crie um arquivo em `commands/`, exemplo:
+   ```js
+   // commands/ping.js
+   module.exports = {
+     name: 'ping',
+     description: 'Responde com Pong!',
+     execute(interaction) {
+       interaction.reply('Pong! 🏓');
+     }
+   };
+   ```
+2. O bot carrega todos os comandos automaticamente ao iniciar.
+
+---
+
+## ☁️ Como rodar no Replit
 
 1. **Importe o projeto para o Replit**
-   - Clique em "Create Repl" > "Import from GitHub" e cole a URL do seu repositório.
-
+   - "Create Repl" > "Import from GitHub" > cole a URL do seu repositório.
 2. **Instale as dependências**
-   - No shell do Replit, execute:
-     ```bash
-     npm install
-     ```
-
+   ```bash
+   npm install
+   ```
 3. **Configure as variáveis de ambiente**
-   - No painel do Replit, clique em "Secrets" (ícone de cadeado) ou "Environment Variables".
-   - Adicione as variáveis abaixo com seus respectivos valores:
-     - `TOKEN` — Token do seu bot Discord
-     - `USER_ID` — Seu ID de usuário Discord (quem pode usar comandos especiais)
-     - `CANAL_ID` — ID do canal padrão para onde as mensagens privadas serão encaminhadas
-     - `SECRET_TOKEN` — Um token secreto para o endpoint keepalive (pode ser qualquer string forte)
-     - `KEEPALIVE_ENABLED` — `true` para ativar o keepalive, `false` para desativar
-   - **Não é necessário criar o arquivo `.env` no Replit, apenas use o painel de variáveis.**
+   - No painel "Secrets" (ícone de cadeado), adicione as variáveis necessárias (veja tabela acima).
+4. **Execute o bot**
+   ```bash
+   npm start
+   ```
+   - Ou configure o botão "Run" para executar `npm start`.
 
-4. **(Opcional) Ajuste a porta do servidor**
-   - O código já está preparado para usar `process.env.PORT`, que é exigido pelo Replit.
+---
 
-5. **Execute o bot**
-   - No shell do Replit, rode:
-     ```bash
-     npm start
+## 💻 Como rodar localmente
+
+1. Instale o Node.js (versão 16 ou superior)
+2. Clone este repositório
+3. Crie um arquivo `.env` na raiz com as variáveis necessárias
+4. Instale as dependências:
+   ```bash
+   npm install
+   ```
+5. Inicie o bot:
+   ```bash
+   npm start
+   ```
+
+---
+
+## 📝 Observações
+
+- O sistema de logs grava em `bot.log` e também mostra no console.
+- Para registrar comandos de barra no Discord, utilize o deploy de comandos (posso ajudar caso queira).
+- O keepalive é útil para manter o bot online em ambientes como o Replit.
+
+---
+
+## ❓ Dúvidas
+Abra uma issue ou entre em contato!
+
      ```
    - Ou configure o "Run" button do Replit para executar `npm start`.
 

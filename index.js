@@ -1,30 +1,56 @@
-// Importa bibliotecas essenciais
-// Adicionado 'Partials' para lidar corretamente com DMs
-const { Client, GatewayIntentBits, ChannelType, Partials, AttachmentBuilder } = require('discord.js');
-const { validateDiscordId, sanitizeMessage, validateCommand, checkRateLimit } = require('./security');
-require('dotenv').config(); // Permite usar variáveis de ambiente locais (opcional fora do Replit)
+require('dotenv').config();
+const { Client, GatewayIntentBits } = require('discord.js');
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const logger = require('simple-node-logger').createSimpleLogger('bot.log');
 
-// Função de log com emojis
-function log(message, type = 'info') {
-  const timestamp = new Date().toISOString();
-  const prefix = {
-    info: 'ℹ️',
-    error: '❌',
-    success: '✅',
-    warning: '⚠️'
-  }[type];
+// Configuração do Express (para manter online)
+const app = express();
+const PORT = process.env.PORT || 8080;
+app.get('/', (req, res) => res.send('Bot Online!'));
+app.listen(PORT, () => logger.info(`Servidor rodando na porta ${PORT}`));
 
-  console.log(`[${timestamp}] ${prefix} ${message}`);
+// Configuração do Bot
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages
+  ]
+});
+
+// Carrega todos os comandos
+client.commands = new Map();
+const commandsPath = path.join(__dirname, 'commands');
+if (fs.existsSync(commandsPath)) {
+  const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+  for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file);
+    const command = require(filePath);
+    client.commands.set(command.name, command);
+  }
 }
 
-// Carrega as variáveis de ambiente
-const TOKEN = process.env.TOKEN;
-// CANAL_ID agora é menos relevante para o envio principal, mas pode ser útil manter para validação ou outros usos.
-const CANAL_ID_DEFAULT = process.env.CANAL_ID; // Renomeado para clareza, se quiser manter um padrão
-const USUARIO_AUTORIZADO = process.env.USER_ID;
+client.on('ready', () => {
+  logger.info(`Bot logado como ${client.user.tag}!`);
+});
 
-// Verifica se as variáveis de ambiente essenciais estão configuradas
-if (!TOKEN) throw new Error('❌ TOKEN não configurado no .env');
+// Listener de interações
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const command = client.commands.get(interaction.commandName);
+  if (!command) return;
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    logger.error(error);
+    await interaction.reply('Ocorreu um erro ao executar o comando.');
+  }
+});
+
+client.login(process.env.TOKEN);
 // A verificação do CANAL_ID pode ser opcional agora, dependendo se você ainda precisa dele.
 if (!CANAL_ID_DEFAULT) log('⚠️ CANAL_ID não configurado no .env (usado como padrão ou para validação inicial)', 'warning');
 if (!USUARIO_AUTORIZADO) throw new Error('❌ USUARIO_AUTORIZADO não configurado no .env');
