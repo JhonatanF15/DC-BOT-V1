@@ -4,5 +4,8 @@ command = "npm start"
 [language]
 language = "nodejs"
 
+[nix]
+channel = "stable-22_11"
+
 [packages]
-nodejs = ["discord.js", "express", "dotenv"]
+nodejs = ["discord.js", "express", "dotenv", "npm"]
