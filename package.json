@@ -1,14 +1,32 @@
 {
   "name": "dc-bot-v1",
   "version": "1.0.0",
+  "description": "Discord bot com keepalive, encaminhamento de DMs e sistema de comandos dinâmicos",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JhonatanF15/DC-BOT-V1.git"
+  },
+  "author": "JhonatanF15",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "discord.js": "^14.14.1",
-    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "simple-node-logger": "^21.8.12"
+    "dotenv": "^16.3.1",
+    "simple-node-logger": "^21.2.0",
+    "node-fetch": "^3.3.2",
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22",
+    "eslint": "^8.44.0"
   }
 }
