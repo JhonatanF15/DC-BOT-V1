@@ -1,4 +1,3 @@
-// index.js
 require("dotenv").config();
 
 const {
@@ -6,16 +5,15 @@ const {
   GatewayIntentBits,
   Partials,
   ChannelType,
+  EmbedBuilder,
 } = require("discord.js");
 
-// Debug de variáveis de ambiente
 console.log("> ENV DEBUG:");
 console.log("  TOKEN:", process.env.TOKEN ? "✅ OK" : "❌ MISSING");
 console.log("  CANAL_ID:", process.env.CANAL_ID ? "✅ OK" : "❌ MISSING");
 console.log("  USER_ID:", process.env.USER_ID ? "✅ OK" : "❌ MISSING");
 console.log("  KEEPALIVE_ENABLED:", process.env.KEEPALIVE_ENABLED);
 
-// Inicia keepalive se configurado
 if (process.env.KEEPALIVE_ENABLED === "true") {
   require("./keepalive");
 }
@@ -31,12 +29,31 @@ const client = new Client({
 });
 
 const TOKEN = process.env.TOKEN;
-const CANAL_ID = process.env.CANAL_ID;
-const USER_ID = process.env.USER_ID;
+const DEFAULT_CHANNEL = process.env.CANAL_ID;
 
-if (!TOKEN || !CANAL_ID || !USER_ID) {
-  console.error("❌ Verifique se TOKEN, CANAL_ID e USER_ID estão definidos");
+if (!TOKEN || !DEFAULT_CHANNEL) {
+  console.error("❌ Verifique se TOKEN e CANAL_ID estão definidos");
   process.exit(1);
+}
+
+const COLORS = {
+  red: "#FF0000",
+  orange: "#FFA500",
+  yellow: "#FFFF00",
+  green: "#008000",
+  blue: "#0000FF",
+  indigo: "#4B0082",
+  violet: "#EE82EE",
+};
+const COLOR_KEYS = Object.keys(COLORS);
+function getRandomColor() {
+  return COLORS[COLOR_KEYS[Math.floor(Math.random() * COLOR_KEYS.length)]];
+}
+
+function parseSection(block, tag) {
+  const regex = new RegExp(`#${tag}\\s+([^#]+)`, "i");
+  const m = regex.exec(block);
+  return m ? m[1].trim() : null;
 }
 
 client.once("ready", () => {
@@ -46,44 +63,88 @@ client.once("ready", () => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  // !ping
+  // ping
   if (message.content === "!ping") {
-    return message.reply("🏓 Pong!");
+    const pong = new EmbedBuilder()
+      .setColor("#2E8B57")
+      .setTitle("🏓 Pong!")
+      .setDescription(`Latência: ${client.ws.ping}ms`);
+    return message.reply({ embeds: [pong] });
   }
 
-  // !to <mensagem>
-  if (message.content.startsWith("!to ")) {
-    const msg = message.content.slice(4).trim();
-    if (!msg) {
-      return message.reply("❌ Escreva uma mensagem após o comando.");
+  // .j via DM
+  if (
+    message.channel.type === ChannelType.DM &&
+    message.content.startsWith(".j")
+  ) {
+    // **1) Separe primeira linha do resto**
+    const [firstLine, ...restLines] = message.content.split("\n");
+    const parts = firstLine.slice(2).trim().split(/\s+/);
+    const channelId = parts.shift() || DEFAULT_CHANNEL;
+    let color = getRandomColor();
+    if (parts[0] && COLORS[parts[0].toLowerCase()]) {
+      color = COLORS[parts.shift().toLowerCase()];
     }
+
+    // **2) Mantenha o texto original com quebras**
+    const raw = restLines.join("\n").trim();
+    if (!raw) {
+      return message.reply("❌ Não encontrei conteúdo após a primeira linha.");
+    }
+
+    // **3) Separe blocos por #embed sem tocar nas quebras**
+    const blocks = raw
+      .split(/#embed/i)
+      .map((b) => b.trim())
+      .filter(Boolean);
+
+    if (blocks.length === 0) {
+      return message.reply("⚠️ Nenhum bloco de embed encontrado.");
+    }
+
+    // **4) Monte cada embed**
+    const embeds = blocks.map((block) => {
+      const title = parseSection(block, "titulo");
+      const subtitle = parseSection(block, "subtitulo");
+      const descr = parseSection(block, "mensagem") || block;
+      const footer = parseSection(block, "rodape");
+      const image = parseSection(block, "imagem");
+      const thumb = parseSection(block, "thumbnail");
+      const url = parseSection(block, "link");
+
+      const e = new EmbedBuilder().setColor(color);
+
+      if (title) e.setTitle(title);
+      if (url) e.setURL(url);
+      if (descr) {
+        const text = subtitle ? `*${subtitle}*\n\n${descr}` : descr;
+        e.setDescription(text);
+      }
+      if (footer) e.setFooter({ text: footer });
+      if (image) e.setImage(image);
+      if (thumb) e.setThumbnail(thumb);
+
+      return e;
+    });
+
+    // **5) Envie**
     try {
-      const canal = await client.channels.fetch(CANAL_ID);
-
-      // Nova formatação com "citação vermelha"
-      await canal.send(`📩 **Mensagem anônima:**\n\`\`\`diff\n- ${msg}\n\`\`\``);
-
-      return message.reply("✅ Mensagem enviada com sucesso!");
+      const channel = await client.channels.fetch(channelId);
+      if (!channel || channel.type !== ChannelType.GuildText) {
+        return message.reply("❌ Canal de texto inválido.");
+      }
+      await channel.send({ embeds });
+      return message.reply(`✅ ${embeds.length} embed(s) enviadas!`);
     } catch (err) {
-      console.error("Erro ao enviar mensagem anônima:", err);
-      return message.reply("❌ Ocorreu um erro ao enviar a mensagem.");
+      console.error("Erro ao enviar embeds:", err);
+      return message.reply("❌ Falha ao enviar embeds.");
     }
   }
 
-  // Encaminhamento de DMs
-  if (message.channel.type === ChannelType.DM) {
-    try {
-      const canal = await client.channels.fetch(CANAL_ID);
-      await canal.send(
-        `📬 DM de ${message.author.tag} (${message.author.id}):\n${message.content}`,
-      );
-    } catch (err) {
-      console.error("Erro ao encaminhar DM:", err);
-    }
-  }
+  // ignora outras DMs
+  if (message.channel.type === ChannelType.DM) return;
 });
 
-// Login com tratamento de possível falha
 client.login(TOKEN).catch((err) => {
   console.error("❌ Falha ao fazer login:", err);
   process.exit(1);
