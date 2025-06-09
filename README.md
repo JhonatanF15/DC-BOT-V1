@@ -1,3 +1,13 @@
+**Desenvolvedor Node.js – Projeto DC-BOT-V1**
+Desenvolvi e implementei um bot para Discord utilizando Node.js e a biblioteca discord.js. O bot interpreta comandos via DM, transforma as mensagens em embeds visuais e os publica dinamicamente em canais públicos. O projeto utiliza variáveis de ambiente seguras (`dotenv`), possui sistema de logs e validação robusta de entradas. Aplicado em contexto real com lógica de parsing customizada.
+
+- Linguagens: JavaScript (ES6+)
+- Backend: Node.js
+- Bibliotecas: discord.js, dotenv
+- Conceitos: API Discord, EmbedBuilder, Regex, Variáveis de Ambiente
+- DevOps: Deploy em ambientes online com keepalive
+
+
 # Discord Bot
 
 Um bot do Discord pronto para rodar no Replit ou localmente, com sistema de comandos, logs, segurança e keepalive.
